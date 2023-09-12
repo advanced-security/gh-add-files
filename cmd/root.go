@@ -9,6 +9,8 @@ import (
 
 func init() {
 	rootCmd.AddCommand(codeScanningCmd)
+	rootCmd.AddCommand(deleteBranchCmd)
+	rootCmd.AddCommand(codescanningrepoCmd)
 
 }
 
