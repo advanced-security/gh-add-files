@@ -24,6 +24,7 @@ var LogFile string
 
 var Branch string
 var CsvFile string
+var Errors = make(map[string]error)
 
 type Repository struct {
 	FullName      string `json:"full_name"`
@@ -72,7 +73,9 @@ func (repo *Repository) GetCodeqlLanguages(client *api.RESTClient) ([]string, er
 	var response map[string]int
 	err := client.Get(fmt.Sprintf("repos/%s/languages", repo.FullName), &response)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return nil, err
 	}
 
 	validLanguages := []string{"Go", "Swift", "Csharp", "Cpp", "C", "Java", "JavaScript", "Python", "Kotlin", "Ruby"}
@@ -103,7 +106,9 @@ func (repo *Repository) createBranchForRepo(client *api.RESTClient) (string, err
 	sha := gojsonq.New().FromInterface(response).Find("commit.sha")
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
 	}
 
 	type RequestBody struct {
@@ -117,13 +122,17 @@ func (repo *Repository) createBranchForRepo(client *api.RESTClient) (string, err
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
-		log.Fatalf("Error converting POST Ref body to json: %s", err)
+		log.Printf("Error converting POST Ref body to json: %s\n", err)
+		Errors[repo.FullName] = err
+		return "", err
 	}
 
 	var postresp interface{}
 	err = client.Post(fmt.Sprintf("repos/%s/git/refs", repo.FullName), bytes.NewReader(jsonData), &postresp)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
 	}
 	ref := gojsonq.New().FromInterface(postresp).Find("ref")
 
@@ -144,11 +153,11 @@ func (repo *Repository) doesCodeqlWorkflowExist(client *api.RESTClient) (bool, e
 			log.Println(err)
 			return false, nil
 		}
-		//if not 404 log fatal and exit
-		log.Fatalln(err)
+		//if not 404 log and exit
+		return false, err
 	}
 	if response != nil {
-		log.Panicln("CodeQL workflow file already exists for this repository.")
+		log.Println("CodeQL workflow file already exists for this repository.")
 		return true, nil
 	}
 	err = errors.New(fmt.Sprintf("Something went wrong when checking for existence of CodeQL workflow for repository: %s\n", repo.FullName))
@@ -159,9 +168,19 @@ func (repo *Repository) doesCodeqlWorkflowExist(client *api.RESTClient) (bool, e
 func (repo *Repository) createWorkflowFile(client *api.RESTClient) (string, error) {
 
 	//Open file on disk
-	f, _ := os.Open(WorkflowFile)
+	f, err := os.Open(WorkflowFile)
+	if err != nil {
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
+	}
 	reader := bufio.NewReader(f)
-	content, _ := io.ReadAll(reader)
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
+	}
 
 	encoded := base64.StdEncoding.EncodeToString((content))
 
@@ -188,25 +207,34 @@ func (repo *Repository) createWorkflowFile(client *api.RESTClient) (string, erro
 	}
 
 	jsonData, err := json.Marshal(request)
+	if err != nil {
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
+	}
 
 	//create workflow file
 	var createresponse interface{}
 	err = client.Put(fmt.Sprintf("repos/%s/contents/.github/workflows/codeql.yml", repo.FullName), bytes.NewReader(jsonData), &createresponse)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
 	}
 	createdFile := gojsonq.New().FromInterface(createresponse).Find("content.name")
 	return fmt.Sprint(createdFile), nil
 
 }
 
-func (repo *Repository) raisePullRequest() string {
+func (repo *Repository) raisePullRequest() (string, error) {
 
 	// Shell out to a gh command and read its output.
 	pr, _, err := gh.Exec("pr", "create", "-R", repo.FullName, "-B", repo.DefaultBranch, "-H", "gh-cli/codescanningworkflow", "-t", "Automated PR: CodeQL workflow added", "-b", "This is an automated pull request adding a codeql workflow")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		Errors[repo.FullName] = err
+		return "", err
 	}
-	return pr.String()
+	return pr.String(), nil
 
 }

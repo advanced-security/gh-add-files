@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -53,7 +54,8 @@ var codeScanningCmd = &cobra.Command{
 			//check that repo has at least one codeql supported language
 			coverage, err := repo.GetCodeqlLanguages(client)
 			if err != nil {
-				log.Fatalln(err)
+				log.Printf("Unable to get repo languages, skipping this repository %s error: %s\n", repo.FullName, err)
+				continue
 			}
 
 			if len(coverage) <= 0 {
@@ -64,7 +66,9 @@ var codeScanningCmd = &cobra.Command{
 			//check that codeql workflow file doesn't already exist
 			isCodeQLEnabled, err := repo.doesCodeqlWorkflowExist(client)
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				Errors[repo.FullName] = err
+				continue
 			}
 			if isCodeQLEnabled == true {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, skipping enablement.", repo.FullName)
@@ -73,22 +77,51 @@ var codeScanningCmd = &cobra.Command{
 
 			newbranchref, err := repo.createBranchForRepo(client)
 			if err != nil {
-				log.Fatalln(err)
+				log.Println(err)
+				continue
 			}
 			log.Printf("Ref created succesfully at : %s\n", newbranchref)
+			if len(newbranchref) <= 0 {
+				log.Println("Unable to create new branch")
+				Errors[repo.FullName] = errors.New("Something went wrong when creating new branch")
+			}
 
 			createdFile, err := repo.createWorkflowFile(client)
 			if err != nil {
-				log.Fatalln(err)
+				log.Println(err)
+				continue
+			}
+			if len(createdFile) <= 0 {
+				log.Println("Unable to create commit new file")
+				Errors[repo.FullName] = errors.New("Something went wrong when creating new file")
+				continue
 			}
 			log.Printf("Successfully created file %s on branch %s in repository %s\n", createdFile, newbranchref, repo.FullName)
 
-			createdPR := repo.raisePullRequest()
+			createdPR, err := repo.raisePullRequest()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			if len(createdFile) <= 0 {
+				log.Println("Unable to create new file")
+				Errors[repo.FullName] = errors.New("Something went wrong when creating new file")
+				continue
+			}
 			log.Printf("Successfully raised pull request %s on branch %s in repository %s\n", createdPR, newbranchref, repo.FullName)
 
 		}
 		log.Printf("Number of repos in organziation is %d\n", len(repos))
-		log.Printf("Successfully raised commited CodeQL workflow files and raised pull requests for organisations %s\n", Organization)
+		if len(Errors) == 0 {
+			println("No Errors where found when processing enable-all job.")
+		}
+		for k, v := range Errors {
+
+			log.Printf("ERROR: Repository: [%s] Message: [%s]\n", k, v)
+		}
+
+		log.Printf("Finishing enable-all job for organisation %s\n", Organization)
 		return
 	},
 }
