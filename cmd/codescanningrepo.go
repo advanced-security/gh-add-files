@@ -22,7 +22,7 @@ func init() {
 	codescanningrepoCmd.MarkPersistentFlagRequired("workflow-file")
 	codescanningrepoCmd.PersistentFlags().StringVarP(&LogFile, "log-file", "l", "", "specify the path where the log file will be saved")
 	codescanningrepoCmd.MarkPersistentFlagRequired("log-file")
-	codescanningrepoCmd.PersistentFlags().StringVarP(&CsvFile, "csv-file", "c", "", "scope of enablement, options are: enable-all enable-repo. If enable-repo is chosen then csv needs to be passed in")
+	codescanningrepoCmd.PersistentFlags().StringVarP(&CsvFile, "csv-file", "c", "", "specify the location of csv file")
 	codescanningrepoCmd.MarkPersistentFlagRequired("csv-file")
 }
 
