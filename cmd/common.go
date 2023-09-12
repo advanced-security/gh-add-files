@@ -21,7 +21,7 @@ import (
 var Organization string
 var WorkflowFile string
 var LogFile string
-var Scope string
+
 var Branch string
 var CsvFile string
 
@@ -66,17 +66,6 @@ func getRepos(client *api.RESTClient) ([]Repository, error) {
 
 	log.Printf("Number of repos is %d\n", len(allrepos))
 	return allrepos, nil
-}
-func validateFlags() error {
-	validScope := []string{"enable-all", "enable-repo"}
-	for _, scope := range validScope {
-		if Scope == scope {
-			// scope is valid
-			return nil
-		}
-	}
-	return fmt.Errorf("Value '%s' is invalid for flag 'scope'. Valid values "+
-		"come from the set %v", Scope, validScope)
 }
 
 func (repo *Repository) GetCodeqlLanguages(client *api.RESTClient) ([]string, error) {

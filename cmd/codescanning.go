@@ -17,12 +17,11 @@ func init() {
 	codeScanningCmd.MarkPersistentFlagRequired("workflow-file")
 	codeScanningCmd.PersistentFlags().StringVarP(&LogFile, "log-file", "l", "", "specify the path where the log file will be saved")
 	codeScanningCmd.MarkPersistentFlagRequired("log-file")
-	codeScanningCmd.PersistentFlags().StringVarP(&Scope, "scope", "s", "", "scope of enablement, options are: enable-all enable-repo. If enable-repo is chosen then csv needs to be passed in")
-	codeScanningCmd.MarkPersistentFlagRequired("scope")
+
 }
 
 var codeScanningCmd = &cobra.Command{
-	Use:   "code-scanning",
+	Use:   "code-scanning-enable-all",
 	Short: "Add workflow files to enable code scanning",
 	Long:  "Creates branch `code-scanning-automated` on each repo in organisation and checks in workflow file defined in `--workflow` flag",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -35,12 +34,6 @@ var codeScanningCmd = &cobra.Command{
 		mw := io.MultiWriter(os.Stdout, logFile)
 		log.SetOutput(mw)
 		defer logFile.Close()
-
-		//validate flags
-		if err := validateFlags(); err != nil {
-			log.Fatalf("Error: %v\n", err)
-		}
-		log.Printf("Selected scope is %s\n", Scope)
 
 		log.Println("Set up REST API Client for GitHub interactions")
 		client, err := api.DefaultRESTClient()
