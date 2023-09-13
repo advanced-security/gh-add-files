@@ -49,7 +49,7 @@ var deleteBranchCmd = &cobra.Command{
 
 			log.Printf("Details for Repository: Full Name: %s; Name: %s; Default Branch: %s\n", repo.FullName, repo.Name, repo.DefaultBranch)
 			var resp interface{}
-			err := client.Delete(fmt.Sprintf("repos/%s/git/refs/%s", repo.FullName, Branch), &resp)
+			err := client.Delete(fmt.Sprintf("repos/%s/git/refs/heads/%s", repo.FullName, Branch), &resp)
 			if err != nil {
 				log.Println(err)
 			}

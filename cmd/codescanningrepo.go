@@ -137,7 +137,7 @@ var codescanningrepoCmd = &cobra.Command{
 
 			log.Printf("Successfully created file %s on branch %s in repository %s\n", createdFile, newbranchref, repo.FullName)
 			createdPR, err := repo.raisePullRequest()
-			if len(createdFile) <= 0 {
+			if len(createdPR) <= 0 {
 				log.Println("Unable to create new file")
 				Errors[repo.FullName] = errors.New("Something went wrong when creating new file")
 				continue
