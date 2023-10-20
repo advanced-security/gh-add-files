@@ -10,8 +10,6 @@ import (
 func init() {
 	rootCmd.AddCommand(codeScanningCmd)
 	rootCmd.AddCommand(deleteBranchCmd)
-	rootCmd.AddCommand(codescanningrepoCmd)
-
 }
 
 var rootCmd = &cobra.Command{

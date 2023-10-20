@@ -69,6 +69,27 @@ func getRepos(client *api.RESTClient) ([]Repository, error) {
 	return allrepos, nil
 }
 
+func getRepo(client *api.RESTClient, RepositoryName string) (Repository, error) {
+	requestPath := fmt.Sprintf("repos/%s", RepositoryName)
+
+	response, err := client.Request(http.MethodGet, requestPath, nil)
+	if err != nil {
+		log.Println(err)
+		Errors[RepositoryName] = err
+		return Repository{}, err
+	}
+
+	var repo Repository
+	body, err := io.ReadAll(response.Body)
+	if err := json.Unmarshal(body, &repo); err != nil {
+		log.Println("Cannot unmarshal JSON")
+		Errors[RepositoryName] = err
+		return Repository{}, err
+	}
+
+	return repo, nil
+}
+
 func (repo *Repository) GetCodeqlLanguages(client *api.RESTClient) ([]string, error) {
 	var response map[string]int
 	err := client.Get(fmt.Sprintf("repos/%s/languages", repo.FullName), &response)

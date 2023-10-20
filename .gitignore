@@ -43,4 +43,6 @@ go.work
 .history
 .ionide
 
+# Log Files
+.log
 # End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode
