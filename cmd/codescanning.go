@@ -8,10 +8,18 @@ import (
 	"log"
 	"os"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	// "github.com/cli/go-gh/v2/pkg/api"
 
 	"github.com/spf13/cobra"
 )
+
+var Organization string
+var WorkflowFile string
+var LogFile string
+
+var Branch string
+var CsvFile string
+var Errors = make(map[string]error)
 
 func init() {
 	codeScanningCmd.PersistentFlags().StringVarP(&Organization, "organization", "o", "", "specify Organisation to implement code scanning")
@@ -50,11 +58,11 @@ var codeScanningCmd = &cobra.Command{
 			log.Fatalln("ERROR: Either organization flag or csv flag must be provided")
 		}
 
-		log.Println("Set up REST API Client for GitHub interactions")
-		client, err := api.DefaultRESTClient()
-		if err != nil {
-			log.Fatalln(err)
-		}
+		// log.Println("Set up REST API Client for GitHub interactions")
+		// client, err := api.DefaultRESTClient()
+		// if err != nil {
+		// 	log.Fatalln(err)
+		// }
 
 		var repos []Repository
 
@@ -82,7 +90,7 @@ var codeScanningCmd = &cobra.Command{
 
 			for _, repository := range repositories {
 				log.Printf("Retrieving Repository: %s .\n", repository)
-				repo, err := getRepo(client, repository)
+				repo, err := getRepo(repository)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -91,7 +99,7 @@ var codeScanningCmd = &cobra.Command{
 		} else {
 			log.Printf("Retrieving Repositories for the Organization: %s \n", Organization)
 
-			if repos, err = getRepos(client); err != nil {
+			if repos, err = getRepos(Organization); err != nil {
 				log.Fatalln(err)
 			}
 		}
@@ -100,9 +108,9 @@ var codeScanningCmd = &cobra.Command{
 
 			log.Printf("Details for Repository: Full Name: %s; Name: %s; Default Branch: %s\n", repo.FullName, repo.Name, repo.DefaultBranch)
 			//check that repo has at least one codeql supported language
-			coverage, err := repo.GetCodeqlLanguages(client)
+			coverage, err := repo.GetCodeqlLanguages()
 			if err != nil {
-				log.Printf("Unable to get repo languages, skipping this repository %s error: %s\n", repo.FullName, err)
+				log.Printf("ERROR: Unable to get repo languages, skipping repository \"%s\"\n Error Message: %s\n", repo.FullName, err)
 				continue
 			}
 
@@ -112,7 +120,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 
 			//check that codeql workflow file doesn't already exist
-			isCodeQLEnabled, err := repo.doesCodeqlWorkflowExist(client)
+			isCodeQLEnabled, err := repo.doesCodeqlWorkflowExist()
 			if err != nil {
 				log.Println(err)
 				Errors[repo.FullName] = err
@@ -123,7 +131,7 @@ var codeScanningCmd = &cobra.Command{
 				continue
 			}
 
-			newbranchref, err := repo.createBranchForRepo(client)
+			newbranchref, err := repo.createBranchForRepo()
 			if err != nil {
 				log.Println(err)
 				continue
@@ -134,7 +142,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 			log.Printf("Ref created succesfully at : %s\n", newbranchref)
 			
-			createdFile, err := repo.createWorkflowFile(client)
+			createdFile, err := repo.createWorkflowFile(WorkflowFile)
 			if err != nil {
 				log.Println(err)
 				continue
