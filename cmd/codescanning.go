@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 
-	// "github.com/cli/go-gh/v2/pkg/api"
-
 	"github.com/spf13/cobra"
 )
 
@@ -57,12 +55,6 @@ var codeScanningCmd = &cobra.Command{
 		if len(Organization) <= 0 && len(CsvFile) <= 0 {
 			log.Fatalln("ERROR: Either organization flag or csv flag must be provided")
 		}
-
-		// log.Println("Set up REST API Client for GitHub interactions")
-		// client, err := api.DefaultRESTClient()
-		// if err != nil {
-		// 	log.Fatalln(err)
-		// }
 
 		var repos []Repository
 
