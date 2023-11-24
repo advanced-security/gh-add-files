@@ -192,6 +192,32 @@ func findNextPage(nextPageLink string) (string, bool) {
 
 }
 
+func (repo *Repository) checkDefaultSetupEnabled() (bool, error) {
+	var defaultSetupEnabledResponse interface{}
+	requestPath := fmt.Sprintf("repos/%s/code-scanning/default-setup", repo.FullName)
+	statusCode, _, err := callApi(requestPath, &defaultSetupEnabledResponse, GET)
+	if statusCode == 404 {
+		log.Printf("The repository %s does not exist\n", repo.FullName)
+		return false, err
+	} else if statusCode == 403 {
+		log.Printf("ERROR: The repository %s does not have Advanced Security enabled\n", repo.FullName)
+		return false, err
+	} else if statusCode == 200 {
+
+		defaultState := gojsonq.New().FromInterface(defaultSetupEnabledResponse).Find("state")
+		if defaultState == "configured" {
+			log.Printf("WARN: The repository %s has default setup enabled\n", repo.FullName)
+			return true, nil
+		} else {
+			log.Printf("The repository %s does not have default setup enabled\n", repo.FullName)
+			return false, nil
+		}
+	}
+
+	log.Printf("ERROR: Unable to get default setup status for repository %s\n", repo.FullName)
+	return false, err
+}
+
 func (repo *Repository) createBranchForRepo() (string, error) {
 	//get sha for default
 	repoBranches := map[string]interface{}{}

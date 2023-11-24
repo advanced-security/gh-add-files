@@ -111,6 +111,18 @@ var codeScanningCmd = &cobra.Command{
 				continue
 			}
 
+			//check that default setup is not enabled
+			isDefaultSetupEnabled, err := repo.isDefaultSetupEnabled()
+			if err != nil {
+				log.Println(err)
+				Errors[repo.FullName] = err
+				continue
+			}
+			if isDefaultSetupEnabled == true {
+				log.Printf("Default setup already enabled for this repository: %s, skipping enablement.", repo.FullName)
+				continue
+			}
+
 			//check that codeql workflow file doesn't already exist
 			isCodeQLEnabled, err := repo.doesCodeqlWorkflowExist()
 			if err != nil {

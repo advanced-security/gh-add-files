@@ -377,6 +377,94 @@ func Test_findNextPage(t *testing.T) {
 	}
 }
 
+func TestRepository_checkDefaultSetupEnabled(t *testing.T) {
+	type fields struct {
+		FullName      string
+		Name          string
+		DefaultBranch string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    bool
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		// Write test cases for the following scenarios:
+		// 1. When the repository has default setup enabled
+		// 2. When the repository does not have default setup enabled
+		// 3. When the repository does not have Advanced Security enabled
+		// 4. When the repository is invalid
+
+		// Test case 1
+		{
+			name: "When the repository has default setup enabled",
+			fields: fields{
+				FullName:      "paradisisland/sheena",
+				Name:          "sheena",
+				DefaultBranch: "main",
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		// Test case 2
+		{
+			name: "When the repository does not have default setup enabled",
+			fields: fields{
+				FullName:      "paradisisland/maria",
+				Name:          "maria",
+				DefaultBranch: "main",
+			},
+			want:    false,
+			wantErr: false,
+		},
+
+		// Test case 3
+		{
+			name: "When the repository does not have Advanced Security enabled",
+			fields: fields{
+				FullName:      "paradisisland/rose",
+				Name:          "rose",
+				DefaultBranch: "main",
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+		// Test case 4
+		{
+			name: "When the repository is invalid",
+			fields: fields{
+				FullName:      "paradisisland/marley",
+				Name:          "marley",
+				DefaultBranch: "main",
+			},
+			want:    false,
+			wantErr: true,
+		},
+
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := &Repository{
+				FullName:      tt.fields.FullName,
+				Name:          tt.fields.Name,
+				DefaultBranch: tt.fields.DefaultBranch,
+			}
+			got, err := repo.checkDefaultSetupEnabled()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Repository.checkDefaultSetupEnabled() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Repository.checkDefaultSetupEnabled() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRepository_createBranchForRepo(t *testing.T) {
 	type fields struct {
 		FullName      string
@@ -733,7 +821,6 @@ func TestRepository_deleteBranch(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -748,3 +835,5 @@ func TestRepository_deleteBranch(t *testing.T) {
 		})
 	}
 }
+
+
