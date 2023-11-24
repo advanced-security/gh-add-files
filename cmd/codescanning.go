@@ -112,7 +112,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 
 			//check that default setup is not enabled
-			isDefaultSetupEnabled, err := repo.isDefaultSetupEnabled()
+			isDefaultSetupEnabled, err := repo.checkDefaultSetupEnabled()
 			if err != nil {
 				log.Println(err)
 				Errors[repo.FullName] = err
