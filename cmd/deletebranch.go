@@ -41,7 +41,7 @@ var deleteBranchCmd = &cobra.Command{
 		log.Printf("Retrieving Repositories for the Organization: %s .\n", Organization)
 		var repos []Repository
 
-		if repos, err = getRepos(client); err != nil {
+		if repos, err = getRepos(Organization); err != nil {
 			log.Fatalln(err)
 		}
 
