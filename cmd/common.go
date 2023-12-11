@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/cli/go-gh/v2/pkg/api"
 	"github.com/thedevsaddam/gojsonq/v2"
@@ -358,11 +359,34 @@ func (repo *Repository) raisePullRequest() (string, error) {
 		Body  string `json:"body"`
 	}
 
+	pr_body := fmt.Sprintf(`
+	## What does this PR do?
+
+	This is an automated PR created by your security team to enable GitHub Code Scanning on your repository. This will allow us to find and fix security vulnerabilities in your code.
+
+	For more information on Code Scanning, please see [here](https://docs.github.com/en/code-security/code-scanning).
+
+	## How do I merge this PR?
+
+	This PR should have triggered CodeQL scans for each [eligible](https://codeql.github.com/docs/codeql-overview/supported-languages-and-frameworks/) language in this repository. If these jobs have passed, you can merge this PR. If they have failed, please take a look at the logs to identify what went wrong and contact the security team if you require assistance.
+
+	The most common issue that will cause this PR to fail is if the autobuilder is unable to build your codebase (for compiled languages). We will need your help to feed in a build command that will allow your codebase to compile. Please see [here](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#building-your-code) for more information.
+
+	Another common issue is that the incorrect runner type may be used. By default we run our scans on Ubuntu. If your codebase requires a different runner type, please make the relevant changes to this PR to run on a different runner. Please contact the security team if you need assistance choosing a different runner.
+
+	## What happens after I merge this PR?
+
+	Once this PR is merged, CodeQL will be enabled on your repository. On every PR to your default branch, we will help you scan your code for security vulnerabilities.
+
+	If you require any further assistance, please contact the security team.
+	`)
+	pr_body = strings.Replace(pr_body, "\n\t", "\n", -1)
+
 	request := PullRequestBody{
 		Title: "Automated PR: CodeQL workflow added",
 		Head:  "gh-cli/codescanningworkflow",
 		Base:  repo.DefaultBranch,
-		Body:  "This is an automated pull request adding a codeql workflow",
+		Body:  pr_body,
 	}
 
 	jsonData, err := json.Marshal(request)
