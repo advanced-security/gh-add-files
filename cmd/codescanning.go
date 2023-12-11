@@ -110,6 +110,11 @@ var codeScanningCmd = &cobra.Command{
 			}
 		}
 
+		var pullRequests []string
+		var defaultScan []string
+		var noLanguage []string
+		var advancedSetup []string
+
 		for _, repo := range repos {
 
 			log.Printf("Details for Repository: Full Name: %s; Name: %s; Default Branch: %s\n", repo.FullName, repo.Name, repo.DefaultBranch)
@@ -122,6 +127,7 @@ var codeScanningCmd = &cobra.Command{
 
 			if len(coverage) <= 0 {
 				log.Printf("No CodeQL supported language found for repository: %s", repo.FullName)
+				noLanguage = append(noLanguage, repo.FullName)
 				continue
 			}
 
@@ -134,6 +140,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 			if isDefaultSetupEnabled == true {
 				log.Printf("Default setup already enabled for this repository: %s, skipping enablement.", repo.FullName)
+				defaultScan = append(defaultScan, repo.FullName)
 				continue
 			}
 
@@ -146,6 +153,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 			if isCodeQLEnabled == true {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, skipping enablement.", repo.FullName)
+				advancedSetup = append(advancedSetup, repo.FullName)
 				continue
 			}
 
@@ -183,15 +191,48 @@ var codeScanningCmd = &cobra.Command{
 				continue
 			}
 			log.Printf("Successfully raised pull request %s on branch %s in repository %s\n", createdPR, newbranchref, repo.FullName)
+			pullRequests = append(pullRequests, createdPR)
 
 		}
 		log.Printf("Number of repos processed: %d\n", len(repos))
 		if len(Errors) == 0 {
 			log.Println("No errors where found when enabling code scanning")
 		}
-		for k, v := range Errors {
 
-			log.Printf("ERROR: Repository: [%s] Message: [%s]\n", k, v)
+		if len(noLanguage) > 0 {
+			log.Printf("Repositories with no CodeQL supported language: %d\n", len(noLanguage))
+			for _, repo := range noLanguage {
+				log.Printf("Repository: %s\n", repo)
+			}
+		}
+
+		if len(defaultScan) > 0 {
+			log.Printf("Repositories with default setup already enabled: %d\n", len(defaultScan))
+			for _, repo := range defaultScan {
+				log.Printf("Repository: %s\n", repo)
+			}
+		}
+
+		if len(advancedSetup) > 0 {
+			log.Printf("Repositories with advanced setup already enabled: %d\n", len(advancedSetup))
+			for _, repo := range advancedSetup {
+				log.Printf("Repository: %s\n", repo)
+			}
+		}
+
+		if len(pullRequests) > 0 {
+			log.Printf("Pull requests raised: %d\n", len(pullRequests))
+			for _, pr := range pullRequests {
+				log.Printf("PR URL: %s\n", pr)
+			}
+		}
+
+		if len(Errors) > 0 {
+			log.Printf("Repositories with errors: %d\n", len(Errors))
+			for k, v := range Errors {
+
+				log.Printf("Repository: %s Message: [%s]\n", k, v)
+			}
 		}
 
 		log.Printf("Finished enable code scanning! \n")
