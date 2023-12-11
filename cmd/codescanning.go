@@ -52,8 +52,12 @@ var codeScanningCmd = &cobra.Command{
 		log.Printf("Logging all output to %s\n", LogFile)
 
 		// check if organization or csv file is provided
-		if len(Organization) <= 0 && len(CsvFile) <= 0 {
+		if len(Organization) <= 0 && len(CsvFile) <= 0 && len(args) <= 0 {
 			log.Fatalln("ERROR: Either organization flag or csv flag must be provided")
+		} else if len(Organization) > 0 && len(args) > 0 {
+			log.Fatalln("ERROR: You cannot provide both organization flag and repository names as arguments")
+		} else if len(CsvFile) > 0 && len(args) > 0 {
+			log.Fatalln("ERROR: You cannot provide both csv flag and repository names as arguments")
 		}
 
 		var repos []Repository
@@ -81,12 +85,22 @@ var codeScanningCmd = &cobra.Command{
 			}
 
 			for _, repository := range repositories {
-				log.Printf("Retrieving Repository: %s .\n", repository)
+				log.Printf("Retrieving Repository: %s \n", repository)
 				repo, err := getRepo(repository)
 				if err != nil {
-					log.Fatalln(err)
+					Errors[repository] = err
 				}
 				repos = append(repos, repo)
+			}
+		} else if len(args) > 0 {
+			for _, repository := range args {
+				log.Printf("Retrieving Repository: %s \n", repository)
+				repo, err := getRepo(repository)
+				if err != nil {
+					Errors[repository] = err
+				} else {
+				repos = append(repos, repo)
+				}
 			}
 		} else {
 			log.Printf("Retrieving Repositories for the Organization: %s \n", Organization)
