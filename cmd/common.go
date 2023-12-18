@@ -30,6 +30,7 @@ const (
 	GET HttpMethod = iota
 	POST
 	PUT
+	PATCH
 	DELETE
 )
 
@@ -113,6 +114,8 @@ func callApi(requestPath string, parseType interface{}, method HttpMethod, postB
 		httpMethod = http.MethodPut
 	case DELETE:
 		httpMethod = http.MethodDelete
+	case PATCH:
+		httpMethod = http.MethodPatch
 	default:
 		httpMethod = http.MethodGet
 	}
@@ -143,7 +146,6 @@ func callApi(requestPath string, parseType interface{}, method HttpMethod, postB
 
 	err = decodeJSONResponse(responseBody, &parseType)
 	if err != nil {
-		log.Println("ERROR: Unable to decode JSON response")
 		return response.StatusCode, nextPage, err
 	}
 
@@ -219,6 +221,38 @@ func (repo *Repository) checkDefaultSetupEnabled() (bool, error) {
 	return false, err
 }
 
+func (repo *Repository) disableDefaultSetup() (bool, error) {
+	type requestBody struct {
+		State string `json:"state"`
+	}
+
+	request := requestBody{State: "not-configured"}
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		log.Printf("ERROR: Unable to marshal JSON request body\n")
+		return false, err
+	}
+
+	requestPath := fmt.Sprintf("repos/%s/code-scanning/default-setup", repo.FullName)
+	statusCode, _, err := callApi(requestPath, nil, PATCH, jsonData)
+	if statusCode == 404 {
+		log.Printf("The repository %s does not exist\n", repo.FullName)
+		return false, err
+	} else if statusCode == 403 {
+		log.Printf("ERROR: The repository %s does not have Advanced Security enabled\n", repo.FullName)
+		return false, err
+	} else if statusCode == 409 {
+		log.Printf("WARN: The repository %s has another configuration run for default setup in progress\n", repo.FullName)
+		return false, err
+	} else if statusCode == 200 {
+		log.Printf("Successfully disabled default setup for the repository %s\n", repo.FullName)
+		return true, nil
+	} 
+
+	log.Printf("ERROR: Unable to enable default setup for repository %s\n", repo.FullName)
+	return false, err
+}
+
 func (repo *Repository) createBranchForRepo() (string, error) {
 	//get sha for default
 	repoBranches := map[string]interface{}{}
@@ -266,24 +300,25 @@ func (repo *Repository) createBranchForRepo() (string, error) {
 
 }
 
-func (repo *Repository) doesCodeqlWorkflowExist() (bool, error) {
+func (repo *Repository) doesCodeqlWorkflowExist() (bool, string, error) {
 	// skipped repos - continue on error and return out if there is a response because it means the file already exists
 	var response interface{}
 	requestPath := fmt.Sprintf("repos/%s/contents/.github/workflows/codeql.yml", repo.FullName)
 	statusCode, _, err := callApi(requestPath, &response, GET)
 	if statusCode == 200 {
 		log.Printf("CodeQL workflow file already exists for repo: %s\n", repo.FullName)
-		return true, nil
+		sha := gojsonq.New().FromInterface(response).Find("sha")
+		return true, fmt.Sprint(sha), nil
 	} else if statusCode == 404 {
 		log.Printf("CodeQL workflow file does not exist for repo: %s\n", repo.FullName)
-		return false, nil
+		return false, "", nil
 	} else {
 		log.Printf("ERROR: Unable to check for existence of CodeQL workflow for repository: %s\n", repo.FullName)
-		return true, err
+		return true, "", err
 	}
 }
 
-func (repo *Repository) createWorkflowFile(WorkflowFile string) (string, error) {
+func (repo *Repository) createWorkflowFile(WorkflowFile string, commitSha string) (string, error) {
 
 	//Open file on disk
 	f, err := os.Open(WorkflowFile)
@@ -310,6 +345,7 @@ func (repo *Repository) createWorkflowFile(WorkflowFile string) (string, error) 
 		Committer Commiter `json:"commiter"`
 		Branch    string   `json:"branch"`
 		Content   string   `json:"content"`
+		Sha	  	  *string  `json:"sha,omitempty"`
 	}
 
 	request := RequestBody{
@@ -320,6 +356,7 @@ func (repo *Repository) createWorkflowFile(WorkflowFile string) (string, error) 
 		},
 		Branch:  "gh-cli/codescanningworkflow",
 		Content: encoded,
+		Sha:	 &commitSha,
 	}
 
 	jsonData, err := json.Marshal(request)
@@ -340,6 +377,8 @@ func (repo *Repository) createWorkflowFile(WorkflowFile string) (string, error) 
 		return "", err
 	} else if statusCode == 201 {
 		log.Printf("Successfully created CodeQL workflow file for repo %s\n", repo.FullName)
+	} else if statusCode == 200 {
+		log.Printf("Successfully updated CodeQL workflow file for repo %s\n", repo.FullName) 
 	} else {
 		log.Printf("ERROR: Unable to create CodeQL workflow file for repository %s\n", repo.FullName)
 		return "", err
@@ -414,9 +453,8 @@ func (repo *Repository) raisePullRequest() (string, error) {
 }
 
 func (repo *Repository) deleteBranch() error {
-	var deleteBranch interface{}
 	requestPath := fmt.Sprintf("repos/%s/git/refs/heads/gh-cli/codescanningworkflow", repo.FullName)
-	statusCode, _, err := callApi(requestPath, &deleteBranch, DELETE, nil)
+	statusCode, _, err := callApi(requestPath, nil, DELETE, nil)
 	if statusCode == 204 {
 		log.Printf("Successfully deleted branch for repo %s\n", repo.FullName)
 	} else if statusCode == 422 {
