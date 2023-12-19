@@ -318,22 +318,44 @@ func (repo *Repository) doesCodeqlWorkflowExist() (bool, string, error) {
 	}
 }
 
-func (repo *Repository) createWorkflowFile(WorkflowFile string, commitSha string) (string, error) {
-
+func (repo *Repository) readCodeqlWorkflowFile(WorkflowFile string) ([]byte, error) {
 	//Open file on disk
 	f, err := os.Open(WorkflowFile)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return []byte{}, err
 	}
 	reader := bufio.NewReader(f)
 	content, err := io.ReadAll(reader)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return []byte{}, err
 	}
 
-	encoded := base64.StdEncoding.EncodeToString((content))
+	return content, nil
+}
+
+func (repo *Repository) generateCodeqlWorkflowFile(TemplateWorkflowFile string) ([]byte, error) {
+	//Open file on disk
+	f, err := os.Open(TemplateWorkflowFile)
+	if err != nil {
+		log.Printf("ERROR: Unable to open template workflow file %s\n", TemplateWorkflowFile)
+		return []byte{}, err
+	}
+	reader := bufio.NewReader(f)
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		log.Printf("ERROR: Unable to read template workflow file %s\n", TemplateWorkflowFile)
+		return []byte{}, err
+	}
+
+	//replace repo name
+	workflowFile := strings.ReplaceAll(string(content), "{{ .DefaultBranch }}", repo.DefaultBranch)
+	return []byte(workflowFile), nil
+}
+
+func (repo *Repository) commitWorkflowFile(WorkflowFile []byte, commitSha string) (string, error) {
+	encoded := base64.StdEncoding.EncodeToString((WorkflowFile))
 
 	type Commiter struct {
 		Name  string `json:"name"`

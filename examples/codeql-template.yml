@@ -1,0 +1,11 @@
+name: CodeQL 
+on:
+  push:
+    branches: [ "{{ .DefaultBranch }}" ]
+  pull_request:
+    branches: [ "{{ .DefaultBranch }}" ]
+  workflow_dispatch:
+
+jobs:
+ code_analysis:
+   uses: advanced-security-demo/central-repo-test/.github/workflows/code_analysis.yml@main

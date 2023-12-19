@@ -15,7 +15,7 @@ import (
 var Organization string
 var WorkflowFile string
 var LogFile string
-
+var TemplateFile string
 var Branch string
 var CsvFile string
 var Force bool
@@ -23,14 +23,17 @@ var Errors = make(map[string]error)
 
 func init() {
 	codeScanningCmd.PersistentFlags().StringVarP(&Organization, "organization", "o", "", "specify Organisation to implement code scanning")
-	codeScanningCmd.PersistentFlags().StringVarP(&WorkflowFile, "workflow", "w", "", "specify the path to the code scanning workflow file")
-	codeScanningCmd.MarkPersistentFlagRequired("workflow")
-	codeScanningCmd.PersistentFlags().StringVarP(&LogFile, "log", "l", "gh-add-files.log", "specify the path where the log file will be saved")
 	codeScanningCmd.PersistentFlags().StringVarP(&CsvFile, "csv", "c", "", "specify the location of csv file")
+	codeScanningCmd.MarkFlagsMutuallyExclusive("csv", "organization")
+	codeScanningCmd.PersistentFlags().StringVarP(&WorkflowFile, "workflow", "w", "", "specify the path to the code scanning workflow file")
+	codeScanningCmd.PersistentFlags().StringVarP(&TemplateFile, "template", "t", "", "specify the path to the code scanning workflow template file")
+	codeScanningCmd.MarkFlagsMutuallyExclusive("workflow", "template")
+	codeScanningCmd.PersistentFlags().StringVarP(&LogFile, "log", "l", "gh-add-files.log", "specify the path where the log file will be saved")
 	// MarkFlagsOneRequired is only available in cobra v1.8.0 that still isn't released yet (https://github.com/spf13/cobra/issues/1936#issuecomment-1669126066)
 	// codeScanningCmd.MarkFlagsOneRequired("csv", "organization")
-	codeScanningCmd.MarkFlagsMutuallyExclusive("csv", "organization")
+	// codeScanningCmd.MarkFlagsOneRequired("workflow", "template")
 	codeScanningCmd.PersistentFlags().BoolVarP(&Force, "force", "f", false, "force enable code scanning advanced setup or update the existing code scanning workflow file")
+	
 }
 
 var codeScanningCmd = &cobra.Command{
@@ -61,6 +64,13 @@ var codeScanningCmd = &cobra.Command{
 			log.Fatalln("ERROR: You cannot provide both organization flag and repository names as arguments")
 		} else if len(CsvFile) > 0 && len(args) > 0 {
 			log.Fatalln("ERROR: You cannot provide both csv flag and repository names as arguments")
+		}
+
+		// check if workflow or template file is provided
+		if len(WorkflowFile) <= 0 && len(TemplateFile) <= 0 {
+			log.Fatalln("ERROR: Either workflow flag or template flag must be provided")
+		} else if len(WorkflowFile) > 0 && len(TemplateFile) > 0 {
+			log.Fatalln("ERROR: You cannot provide both workflow flag and template flag")
 		}
 
 		var repos []Repository
@@ -201,7 +211,22 @@ var codeScanningCmd = &cobra.Command{
 			}
 			log.Printf("Ref created succesfully at : %s\n", newbranchref)
 			
-			createdFile, err := repo.createWorkflowFile(WorkflowFile, sha)
+			var workflowFile []byte
+			if len(TemplateFile) > 0 {
+				workflowFile, err = repo.generateCodeqlWorkflowFile(TemplateFile)
+				if err != nil {
+					Errors[repo.FullName] = err
+					continue
+				}
+			} else {
+				workflowFile, err = repo.readCodeqlWorkflowFile(WorkflowFile)
+				if err != nil {
+					Errors[repo.FullName] = err
+					continue
+				}
+			}
+
+			createdFile, err := repo.commitWorkflowFile(workflowFile, sha)
 			if err != nil {
 				log.Println(err)
 				continue
