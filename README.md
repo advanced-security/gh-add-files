@@ -1,9 +1,8 @@
 # gh add-files : A GitHub CLI Extension
 
 The `gh add files` is a GitHub CLI Extension that allows you to add files to your GitHub repositories directly from the command line.
-`v1.x.x` of this tool exculsively accomodates `codeql.yml` files, that are committed to the `.github/workflows/codeql.yml` path of the repository. 
 
-This tool streamlines the process of rolling out Code Scanning to your Organization when using centralised workflows. 
+This tool currently streamlies the process of enabling advanced setup for Code Scanning to your repositories.
 
 ### Prerequisites 
 
@@ -20,55 +19,67 @@ gh extension install add-files
 
 ## Features
 
-### Code Scanning Enable All 
+### Code Scanning
 
-You can add a code scanning workflow file to every repository in the organisation by running the following command:
+To enable advanced setup for code scanning, you can use the following command with the following usage:
+
 ```bash
-gh add-files code-scanning-enable-all -o ORG_NAME -w WORKFLOW_FILE -l LOG_FILE
+gh add-files code-scanning
+Add / Update the codeql.yml file in a repository via a PR
+
+Usage:
+  add-files code-scanning [flags]
+
+Flags:
+  -c, --csv string            specify the location of csv file
+  -f, --force                 force enable code scanning advanced setup or update the existing code scanning workflow file
+  -h, --help                  help for code-scanning
+  -l, --log string            specify the path where the log file will be saved (default "gh-add-files.log")
+  -o, --organization string   specify Organisation to implement code scanning
+  -t, --template string       specify the path to the code scanning workflow template file
+  -w, --workflow string       specify the path to the code scanning workflow file 
 ```
-The following flags are mandatory: 
-- `-o` - specifies the organisation you want to roll out code scanning to
-- `-w` - specify the path to the code scanning file
-- `-l` - specify the path where the log file will be saved
 
-This command operates by traversing all the repositories within the organization. For each repository, it performs the following steps:
+The code-scanning command accepts the following three input sources:
 
-1. Creates a new branch, naming it gh-cli/codescanningworkflow, branching off the default branch.
+- `c` - A CSV file containing a list of repositories to enable code scanning for. The CSV file's format is straightforward, consisting of a single column where each row specifies a repository in the format `{OWNER}/{REPO}`. No heading is required for this csv. You can refer to the examples/test.csv file in this repository for an illustration.
+- `o` - An organization to enable code scanning for. This will enable code scanning for all repositories within the organization.
+- standard input - A space separated list of repositories to enable code scanning for.
 
-2. Commits the workflow file specified by the user using the `-w` flag. 
+You cannot specify more than one of these input sources.
 
-3. Initiates a pull request to the default branch.
+#### codeql.yml
 
-In case of any errors during this process, it logs the error but continues to the next repository.
+There are two ways to push a `codeql.yml` file to your repository:
 
-After the command completes its execution, it is strongly recommended to review the log file for any potential errors. Once any identified issues are rectified, you can rerun the command.
+- You can specify the path to a `codeql.yml` file using the `-w` flag. This file will be pushed to the repository as is.
+- You can specify the path to a `codeql.yml` template file using the `-t` flag. This template file will be used to generate a `codeql.yml` file, which will then be pushed to the repository. The template file is used if you want to dynamically generate a `codeql.yml` where the default branch will be different for every repo. The tool will determine the default branch for the repository and update the template file for the repository.
 
-### Code Scanning Enable Repository
+#### Force Flag
 
-You have the option to incorporate a code scanning workflow file into multiple repositories within an organization, as defined by a CSV file. The CSV file's format is straightforward, consisting of a single column where each row specifies a repository in the format `{OWNER}/{REPO}`. No heading is required for this csv. You can refer to the examples/test.csv file in this repository for an illustration.
+The `-f` flag allows you to force enable code scanning advanced setup or update the existing code scanning workflow file. If default setup is currently enabled or if advanced setup is already enabled in the repository, this flag will disable default setup. If advanced setup is already enabled, this flag will open a PR to update the file. repository.
 
-You can run the following command:
+#### Usage Examples
+
+To enable code scanning for all repositories within an organization, run the following command:
 ```bash
-gh add-files code-scanning-enable-repo -o ORGANISATION -w WORKFLOW_FILE -l LOG_FILE -c CSV_FILE
+gh add-files code-scanning -o ORG_NAME -w WORKFLOW_FILE
 ```
-The following flags are mandatory: 
-- `-o` - specifies the organisation you want to roll out code scanning to
-- `-w` - specify the path to the code scanning file
-- `-l` - specify the path where the log file will be saved
-- `-c` - specify the location of the csv file
 
+To enable code scanning for a list of repositories specified in a CSV file, run the following command:
+```bash
+gh add-files code-scanning -c CSV_FILE -w WORKFLOW_FILE
+```
 
-This command operates by traversing all the repositories specified in the csv within the organization. For each repository, it performs the following steps:
+To enable code scanning for a list of repositories specified in standard input, run the following command:
+```bash
+gh add-files code-scanning -w WORKFLOW_FILE ORG/REPO1 ORG/REPO2
+```
 
-1. Creates a new branch, naming it gh-cli/codescanningworkflow, branching off the default branch.
-
-2. Commits the workflow file specified by the user using the `-w` flag. 
-
-3. Initiates a pull request to the default branch.
-
-In case of any errors during this process, it logs the error but continues to the next repository.
-
-After the command completes its execution, it is strongly recommended to review the log file for any potential errors. Once any identified issues are rectified, you can rerun the command.
+To enable code scanning for all repositories within an organization using a template file, run the following command:
+```bash
+gh add-files code-scanning -o ORG_NAME -t TEMPLATE_FILE
+```
 
 ### Delete Branch 
 

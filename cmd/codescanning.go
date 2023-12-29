@@ -39,7 +39,7 @@ func init() {
 var codeScanningCmd = &cobra.Command{
 	Use:   "code-scanning",
 	Short: "Add workflow files to enable code scanning",
-	Long:  "Creates branch `code-scanning-automated` on each repo in organisation and checks in workflow file defined in `--workflow` flag",
+	Long:  "Add / Update the codeql.yml file in a repository via a PR",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//set up logging

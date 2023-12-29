@@ -374,7 +374,7 @@ func (repo *Repository) commitWorkflowFile(WorkflowFile []byte, commitSha string
 		Message: "AUTOMATED: commited CodeQL file",
 		Committer: Commiter{
 			Name:  "gh-cli add-files",
-			Email: "security@clsa",
+			Email: "security@yourcompany",
 		},
 		Branch:  "gh-cli/codescanningworkflow",
 		Content: encoded,
