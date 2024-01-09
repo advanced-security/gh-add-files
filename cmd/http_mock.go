@@ -38,22 +38,22 @@ func MockPutResponse(path string) (string, int, error) {
 			  "path": ".github/workflows/codeql.yml",
 			  "sha": "95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
 			  "size": 9,
-			  "url": "https://api.github.com/repos/paradiisland/maria/contents/.github/workflows/codeql.yml?ref=main",
+			  "url": "https://api.github.com/repos/paradisisland/maria/contents/.github/workflows/codeql.yml?ref=main",
 			  "html_url": "https://github.com/paradisisland/maria/blob/main/.github/workflows/codeql.yml",
-			  "git_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
-			  "download_url": "https://raw.githubusercontent.com/octocat/HelloWorld/master/notes/hello.txt",
+			  "git_url": "https://api.github.com/repos/paradisisland/maria/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
+			  "download_url": "https://raw.githubusercontent.com/paradisisland/maria/main/.github/workflows/codeql.yml",
 			  "type": "file",
 			  "_links": {
-				"self": "https://api.github.com/repos/octocat/Hello-World/contents/notes/hello.txt",
-				"git": "https://api.github.com/repos/octocat/Hello-World/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
-				"html": "https://github.com/octocat/Hello-World/blob/master/notes/hello.txt"
+				"self": "https://api.github.com/repos/paradisisland/maria/main/.github/workflows/codeql.yml",
+				"git": "https://api.github.com/repos/paradisisland/maria/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
+				"html": "https://github.com/paradisisland/maria/blob/main/.github/workflows/codeql.yml"
 			  }
 			},
 			"commit": {
 			  "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
 			  "node_id": "MDY6Q29tbWl0NzYzODQxN2RiNmQ1OWYzYzQzMWQzZTFmMjYxY2M2MzcxNTU2ODRjZA==",
-			  "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
-			  "html_url": "https://github.com/octocat/Hello-World/git/commit/7638417db6d59f3c431d3e1f261cc637155684cd",
+			  "url": "https://api.github.com/repos/paradisisland/maria/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
+			  "html_url": "https://github.com/paradisisland/maria/git/commit/7638417db6d59f3c431d3e1f261cc637155684cd",
 			  "author": {
 				"date": "2014-11-07T22:01:45Z",
 				"name": "Monalisa Octocat",
@@ -66,13 +66,13 @@ func MockPutResponse(path string) (string, int, error) {
 			  },
 			  "message": "my commit message",
 			  "tree": {
-				"url": "https://api.github.com/repos/octocat/Hello-World/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
+				"url": "https://api.github.com/repos/paradisisland/maria/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
 				"sha": "691272480426f78a0138979dd3ce63b77f706feb"
 			  },
 			  "parents": [
 				{
-				  "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
-				  "html_url": "https://github.com/octocat/Hello-World/git/commit/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+				  "url": "https://api.github.com/repos/paradisisland/maria/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+				  "html_url": "https://github.com/paradisisland/maria/git/commit/1acc419d4d6a9ce985db7be48c6349a0475975b5",
 				  "sha": "1acc419d4d6a9ce985db7be48c6349a0475975b5"
 				}
 			  ],
@@ -98,22 +98,22 @@ func MockPutResponse(path string) (string, int, error) {
 				"path": ".github/workflows/codeql.yml",
 				"sha": "95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
 				"size": 9,
-				"url": "https://api.github.com/repos/paradiisland/shiganshima/contents/.github/workflows/codeql.yml?ref=main",
+				"url": "https://api.github.com/repos/paradisisland/shiganshima/contents/.github/workflows/codeql.yml?ref=main",
 				"html_url": "https://github.com/paradisisland/shiganshima/blob/main/.github/workflows/codeql.yml",
-				"git_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
-				"download_url": "https://raw.githubusercontent.com/octocat/HelloWorld/master/notes/hello.txt",
+				"git_url": "https://api.github.com/repos/paradisisland/shiganshima/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
+				"download_url": "https://raw.githubusercontent.com/shiganshima/contents/.github/workflows/codeql.yml",
 				"type": "file",
 				"_links": {
-				  "self": "https://api.github.com/repos/octocat/Hello-World/contents/notes/hello.txt",
-				  "git": "https://api.github.com/repos/octocat/Hello-World/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
-				  "html": "https://github.com/octocat/Hello-World/blob/master/notes/hello.txt"
+				  "self": "https://api.github.com/repos/shiganshima/contents/.github/workflows/codeql.yml",
+				  "git": "https://api.github.com/repos/shiganshima/git/blobs/95b966ae1c166bd92f8ae7d1c313e738c731dfc3",
+				  "html": "https://github.com/shiganshima/contents/.github/workflows/codeql.yml"
 				}
 			  },
 			  "commit": {
 				"sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
 				"node_id": "MDY6Q29tbWl0NzYzODQxN2RiNmQ1OWYzYzQzMWQzZTFmMjYxY2M2MzcxNTU2ODRjZA==",
-				"url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
-				"html_url": "https://github.com/octocat/Hello-World/git/commit/7638417db6d59f3c431d3e1f261cc637155684cd",
+				"url": "https://api.github.com/repos/paradisisland/shiganshima/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
+				"html_url": "https://github.com/paradisisland/shiganshima/git/commit/7638417db6d59f3c431d3e1f261cc637155684cd",
 				"author": {
 				  "date": "2014-11-07T22:01:45Z",
 				  "name": "Monalisa Octocat",
@@ -126,13 +126,13 @@ func MockPutResponse(path string) (string, int, error) {
 				},
 				"message": "my commit message",
 				"tree": {
-				  "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
+				  "url": "https://api.github.com/repos/paradisisland/shiganshima/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
 				  "sha": "691272480426f78a0138979dd3ce63b77f706feb"
 				},
 				"parents": [
 				  {
-					"url": "https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
-					"html_url": "https://github.com/octocat/Hello-World/git/commit/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+					"url": "https://api.github.com/repos/paradisisland/shiganshima/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+					"html_url": "https://github.com/paradisisland/shiganshima/git/commit/1acc419d4d6a9ce985db7be48c6349a0475975b5",
 					"sha": "1acc419d4d6a9ce985db7be48c6349a0475975b5"
 				  }
 				],
@@ -298,7 +298,7 @@ func MockRepoGetResponses(path string) (string, int, error) {
 					"message": "Merge pull request #6 from Spaceghost/patch-1\n\nNew line at end of file.",
 					"tree": {
 					  "sha": "b4eecafa9be2f2006ce1b709d6857b07069b4608",
-					  "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/b4eecafa9be2f2006ce1b709d6857b07069b4608"
+					  "url": "https://api.github.com/repos/paradisisland/Hello-World/git/trees/b4eecafa9be2f2006ce1b709d6857b07069b4608"
 					}
 				}
 			}

@@ -3,7 +3,7 @@ module github.com/s-samadi/gh-add-files
 go 1.20
 
 require (
-	github.com/cli/go-gh/v2 v2.3.0
+	github.com/cli/go-gh/v2 v2.4.0
 	github.com/spf13/cobra v1.7.0
 	github.com/thedevsaddam/gojsonq/v2 v2.5.2
 )

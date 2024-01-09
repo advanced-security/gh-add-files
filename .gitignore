@@ -28,7 +28,6 @@ go.work
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
-!.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
@@ -42,6 +41,8 @@ go.work
 # Ignore all local history of files
 .history
 .ionide
+
+
 
 # Log Files
 .log
