@@ -96,6 +96,14 @@ The following flags are mandatory:
 - `-l` - specify the path where the log file will be saved
 
 
+## License 
+
+This project is licensed under the terms of the MIT open source license. Please refer to [MIT](./LICENSE.txt) for the full terms.
+
+## Maintainers 
+
+See the [CODEOWNERS](./.github/CODEOWNERS) for the list of maintainers.
+
 
 
 

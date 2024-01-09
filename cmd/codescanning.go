@@ -158,11 +158,11 @@ var codeScanningCmd = &cobra.Command{
 				Errors[repo.FullName] = err
 				continue
 			}
-			if isDefaultSetupEnabled == true && Force == false {
+			if isDefaultSetupEnabled && !Force {
 				log.Printf("Default setup already enabled for this repository: %s, skipping enablement.", repo.FullName)
 				defaultScan = append(defaultScan, repo.FullName)
 				continue
-			} else if isDefaultSetupEnabled == true && Force == true {
+			} else if isDefaultSetupEnabled && Force {
 				log.Printf("Default setup already enabled for this repository: %s, but force flag is set, converting repo to advanced setup", repo.FullName)
 
 				result, err := repo.disableDefaultSetup(client)
@@ -171,7 +171,7 @@ var codeScanningCmd = &cobra.Command{
 					continue
 				}
 
-				if result == true {
+				if result {
 					log.Printf("Default setup disabled for repository: %s", repo.FullName)
 				}
 			}
@@ -183,18 +183,18 @@ var codeScanningCmd = &cobra.Command{
 				Errors[repo.FullName] = err
 				continue
 			}
-			if isCodeQLEnabled == true && Force == false {
+			if isCodeQLEnabled && !Force {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, skipping enablement.", repo.FullName)
 				advancedSetup = append(advancedSetup, repo.FullName)
 				continue
-			} else if isCodeQLEnabled == true && Force == true {
+			} else if isCodeQLEnabled && Force {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, but force flag is set, updating workflow file", repo.FullName)
 			}
 
 			newbranchref, err := repo.createBranchForRepo(client)
 			if err != nil {
 				// log.Println(err)
-				if strings.Contains(err.Error(), "already exists") && Force == true {
+				if strings.Contains(err.Error(), "already exists") && Force {
 					log.Printf("Force flag is set, removing existing branch for repository: %s\n", repo.FullName)
 					err := repo.deleteBranch(client)
 					if err != nil {
@@ -301,6 +301,6 @@ var codeScanningCmd = &cobra.Command{
 		}
 
 		log.Printf("Finished enable code scanning! \n")
-		return
+
 	},
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -43,7 +42,7 @@ func (*TestClient) Request(method string, path string, body io.Reader) (*http.Re
 	// Create a new response
 	response := &http.Response{
 		StatusCode: statusCode,
-		Body:       ioutil.NopCloser(strings.NewReader(jsonResponse)),
+		Body:       io.NopCloser(strings.NewReader(jsonResponse)),
 		Header:     make(http.Header),
 	}
 	response.Header.Set("Content-Type", "application/json")

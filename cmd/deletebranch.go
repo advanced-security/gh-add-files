@@ -59,7 +59,5 @@ var deleteBranchCmd = &cobra.Command{
 
 			log.Printf("Successfully deleted branch %s from repository %s\n", Branch, repo.FullName)
 		}
-		return
-
 	},
 }
