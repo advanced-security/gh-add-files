@@ -1,0 +1,20 @@
+# This file contains all available configuration options
+# with their default values.
+
+# options for analysis running
+run:
+  go: '1.20.x'
+
+issues:
+  # List of regexps of issue texts to exclude.
+  #
+  # But independently of this option we use default exclude patterns,
+  # it can be disabled by `exclude-use-default: false`.
+  # To list all excluded by default patterns execute `golangci-lint run --help`
+  #
+  # Default: https://golangci-lint.run/usage/false-positives/#default-exclusions
+  exclude:
+    - "Error return value of `deleteBranchCmd.MarkPersistentFlagRequired` is not checked"
+    - "field `http` is unused"
+    - "field `client` is unused"
+    - "S1039: unnecessary use of fmt.Sprintf"
