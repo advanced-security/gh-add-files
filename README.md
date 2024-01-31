@@ -6,7 +6,7 @@ This tool currently streamlies the process of enabling advanced setup for Code S
 
 ### Prerequisites 
 
-1. Install gh-cli. For further instructions please see [here]https://github.com/cli/cli#installation 
+1. Install gh-cli. For further instructions please see [here](https://github.com/cli/cli#installation )
 
 2. This extension modifies files in the `.github/workflows` directory. Therefore you must authenticate with the `workflow` and `project` scope. You will also need write access to all required repositories. For example run command `gh auth login -s "workflow project". Alternatively, you can authenticate with a PAT that has the required scope.
 
@@ -96,6 +96,17 @@ The following flags are mandatory:
 - `-l` - specify the path where the log file will be saved
 
 
+## License 
+
+This project is licensed under the terms of the MIT open source license. Please refer to [MIT](./LICENSE.txt) for the full terms.
+
+## Maintainers 
+
+See the [CODEOWNERS](./.github/CODEOWNERS) for the list of maintainers.
+
+## Support
+
+The support process is outlined in the [SUPPORT.md](./SUPPORT.md)
 
 
 

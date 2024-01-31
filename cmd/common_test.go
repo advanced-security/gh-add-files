@@ -4,13 +4,12 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/cli/go-gh/v2/pkg/api"
 )
 
 func Test_getRepos(t *testing.T) {
+
 	type args struct {
-		client       *api.RESTClient
+		client       *TestClient
 		Organization string
 	}
 
@@ -85,8 +84,10 @@ func Test_getRepos(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getRepos(tt.args.Organization)
+			client := &TestClient{}
+			got, err := getRepos(tt.args.Organization, client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getRepos() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -139,7 +140,8 @@ func Test_getRepo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getRepo(tt.args.RepositoryName)
+			client := &TestClient{}
+			got, err := getRepo(tt.args.RepositoryName, client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getRepo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -239,7 +241,8 @@ func Test_callApi(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := callApi(tt.args.requestPath, tt.args.parseType, tt.args.method, tt.args.body)
+			client := &TestClient{}
+			got, got1, err := callApi(client, tt.args.requestPath, tt.args.parseType, tt.args.method, tt.args.body)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("callApi() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -317,12 +320,13 @@ func TestRepository_GetCodeqlLanguages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.GetCodeqlLanguages()
+			got, err := repo.GetCodeqlLanguages(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.GetCodeqlLanguages() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -451,12 +455,13 @@ func TestRepository_checkDefaultSetupEnabled(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.checkDefaultSetupEnabled()
+			got, err := repo.checkDefaultSetupEnabled(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.checkDefaultSetupEnabled() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -537,12 +542,13 @@ func TestRepository_disableDefaultSetup(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.disableDefaultSetup()
+			got, err := repo.disableDefaultSetup(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.disableDefaultSetup() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -599,8 +605,8 @@ func TestRepository_createBranchForRepo(t *testing.T) {
 		{
 			name: "When the repository has the branch codescanningworkflow",
 			fields: fields{
-				FullName:      "paradisisland/maria",
-				Name:          "maria",
+				FullName:      "paradisisland/rose",
+				Name:          "rose",
 				DefaultBranch: "main",
 			},
 			want:    "",
@@ -621,12 +627,13 @@ func TestRepository_createBranchForRepo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.createBranchForRepo()
+			got, err := repo.createBranchForRepo(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.createBranchForRepo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -709,12 +716,13 @@ func TestRepository_doesCodeqlWorkflowExist(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, got1, err := repo.doesCodeqlWorkflowExist()
+			got, got1, err := repo.doesCodeqlWorkflowExist(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.doesCodeqlWorkflowExist() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -799,6 +807,7 @@ func TestRepository_readCodeqlWorkflowFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
@@ -902,8 +911,6 @@ func TestRepository_generateCodeqlWorkflowFile(t *testing.T) {
 	}
 }
 
-
-
 func TestRepository_commitWorkflowFile(t *testing.T) {
 	type fields struct {
 		FullName      string
@@ -948,8 +955,8 @@ func TestRepository_commitWorkflowFile(t *testing.T) {
 		{
 			name: "When the repository has the CodeQL workflow file",
 			fields: fields{
-				FullName:      "paradisisland/maria",
-				Name:          "maria",
+				FullName:      "paradisisland/rose",
+				Name:          "rose",
 				DefaultBranch: "main",
 			},
 			args: args{
@@ -991,16 +998,16 @@ func TestRepository_commitWorkflowFile(t *testing.T) {
 			want:    "codeql.yml",
 			wantErr: false,
 		},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.commitWorkflowFile(tt.args.WorkflowFile, tt.args.commitSha)
+			got, err := repo.commitWorkflowFile(client, tt.args.WorkflowFile, tt.args.commitSha)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.commitWorkflowFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1046,8 +1053,8 @@ func TestRepository_raisePullRequest(t *testing.T) {
 		{
 			name: "When the repository has a pull request",
 			fields: fields{
-				FullName:      "paradisisland/maria",
-				Name:          "maria",
+				FullName:      "paradisisland/rose",
+				Name:          "rose",
 				DefaultBranch: "main",
 			},
 			want:    "",
@@ -1068,12 +1075,13 @@ func TestRepository_raisePullRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			got, err := repo.raisePullRequest()
+			got, err := repo.raisePullRequest(client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Repository.raisePullRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1129,8 +1137,8 @@ func TestRepository_deleteBranch(t *testing.T) {
 		{
 			name: "When the repository does not have the codescanningworkflow branch",
 			fields: fields{
-				FullName:      "paradisisland/maria",
-				Name:          "maria",
+				FullName:      "paradisisland/rose",
+				Name:          "rose",
 				DefaultBranch: "main",
 			},
 			wantErr: true,
@@ -1149,15 +1157,15 @@ func TestRepository_deleteBranch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			client := &TestClient{}
 			repo := &Repository{
 				FullName:      tt.fields.FullName,
 				Name:          tt.fields.Name,
 				DefaultBranch: tt.fields.DefaultBranch,
 			}
-			if err := repo.deleteBranch(); (err != nil) != tt.wantErr {
+			if err := repo.deleteBranch(client); (err != nil) != tt.wantErr {
 				t.Errorf("Repository.deleteBranch() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
-

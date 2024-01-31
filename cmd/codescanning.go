@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"encoding/csv"
-	"fmt"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/cli/go-gh/v2/pkg/api"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,7 @@ func init() {
 	// codeScanningCmd.MarkFlagsOneRequired("csv", "organization")
 	// codeScanningCmd.MarkFlagsOneRequired("workflow", "template")
 	codeScanningCmd.PersistentFlags().BoolVarP(&Force, "force", "f", false, "force enable code scanning advanced setup or update the existing code scanning workflow file")
-	
+
 }
 
 var codeScanningCmd = &cobra.Command{
@@ -73,6 +74,12 @@ var codeScanningCmd = &cobra.Command{
 			log.Fatalln("ERROR: You cannot provide both workflow flag and template flag")
 		}
 
+		//set up github client
+		client, err := api.DefaultRESTClient()
+		if err != nil {
+			log.Fatalln("ERROR: Unable to create REST client: ", err)
+		}
+
 		var repos []Repository
 
 		if len(CsvFile) > 0 {
@@ -99,7 +106,7 @@ var codeScanningCmd = &cobra.Command{
 
 			for _, repository := range repositories {
 				log.Printf("Retrieving Repository: %s \n", repository)
-				repo, err := getRepo(repository)
+				repo, err := getRepo(repository, client)
 				if err != nil {
 					Errors[repository] = err
 				}
@@ -108,17 +115,17 @@ var codeScanningCmd = &cobra.Command{
 		} else if len(args) > 0 {
 			for _, repository := range args {
 				log.Printf("Retrieving Repository: %s \n", repository)
-				repo, err := getRepo(repository)
+				repo, err := getRepo(repository, client)
 				if err != nil {
 					Errors[repository] = err
 				} else {
-				repos = append(repos, repo)
+					repos = append(repos, repo)
 				}
 			}
 		} else {
 			log.Printf("Retrieving Repositories for the Organization: %s \n", Organization)
 
-			if repos, err = getRepos(Organization); err != nil {
+			if repos, err = getRepos(Organization, client); err != nil {
 				log.Fatalln(err)
 			}
 		}
@@ -132,7 +139,7 @@ var codeScanningCmd = &cobra.Command{
 
 			log.Printf("Details for Repository: Full Name: %s; Name: %s; Default Branch: %s\n", repo.FullName, repo.Name, repo.DefaultBranch)
 			//check that repo has at least one codeql supported language
-			coverage, err := repo.GetCodeqlLanguages()
+			coverage, err := repo.GetCodeqlLanguages(client)
 			if err != nil {
 				log.Printf("ERROR: Unable to get repo languages, skipping repository \"%s\"\n Error Message: %s\n", repo.FullName, err)
 				continue
@@ -145,57 +152,57 @@ var codeScanningCmd = &cobra.Command{
 			}
 
 			//check that default setup is not enabled
-			isDefaultSetupEnabled, err := repo.checkDefaultSetupEnabled()
+			isDefaultSetupEnabled, err := repo.checkDefaultSetupEnabled(client)
 			if err != nil {
 				log.Println(err)
 				Errors[repo.FullName] = err
 				continue
 			}
-			if isDefaultSetupEnabled == true && Force == false {
+			if isDefaultSetupEnabled && !Force {
 				log.Printf("Default setup already enabled for this repository: %s, skipping enablement.", repo.FullName)
 				defaultScan = append(defaultScan, repo.FullName)
 				continue
-			} else if isDefaultSetupEnabled == true && Force == true {
+			} else if isDefaultSetupEnabled && Force {
 				log.Printf("Default setup already enabled for this repository: %s, but force flag is set, converting repo to advanced setup", repo.FullName)
 
-				result, err := repo.disableDefaultSetup()
+				result, err := repo.disableDefaultSetup(client)
 				if err != nil {
 					Errors[repo.FullName] = err
 					continue
 				}
 
-				if result == true {
+				if result {
 					log.Printf("Default setup disabled for repository: %s", repo.FullName)
 				}
 			}
 
 			//check that codeql workflow file doesn't already exist
-			isCodeQLEnabled, sha, err := repo.doesCodeqlWorkflowExist()
+			isCodeQLEnabled, sha, err := repo.doesCodeqlWorkflowExist(client)
 			if err != nil {
 				log.Println(err)
 				Errors[repo.FullName] = err
 				continue
 			}
-			if isCodeQLEnabled == true && Force == false {
+			if isCodeQLEnabled && !Force {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, skipping enablement.", repo.FullName)
 				advancedSetup = append(advancedSetup, repo.FullName)
 				continue
-			} else if isCodeQLEnabled == true && Force == true {
+			} else if isCodeQLEnabled && Force {
 				log.Printf("CodeQL workflow file already exists for this repository: %s, but force flag is set, updating workflow file", repo.FullName)
 			}
 
-			newbranchref, err := repo.createBranchForRepo()
+			newbranchref, err := repo.createBranchForRepo(client)
 			if err != nil {
 				// log.Println(err)
-				if strings.Contains(err.Error(), "already exists") && Force == true {
+				if strings.Contains(err.Error(), "already exists") && Force {
 					log.Printf("Force flag is set, removing existing branch for repository: %s\n", repo.FullName)
-					err := repo.deleteBranch()
+					err := repo.deleteBranch(client)
 					if err != nil {
 						Errors[repo.FullName] = err
 						continue
 					}
 					log.Printf("Successfully removed branch for repository: %s\n", repo.FullName)
-					newbranchref, err = repo.createBranchForRepo()
+					newbranchref, err = repo.createBranchForRepo(client)
 					if err != nil {
 						Errors[repo.FullName] = err
 						continue
@@ -210,7 +217,7 @@ var codeScanningCmd = &cobra.Command{
 				Errors[repo.FullName] = errors.New("Something went wrong when creating new branch")
 			}
 			log.Printf("Ref created succesfully at : %s\n", newbranchref)
-			
+
 			var workflowFile []byte
 			if len(TemplateFile) > 0 {
 				workflowFile, err = repo.generateCodeqlWorkflowFile(TemplateFile)
@@ -226,7 +233,7 @@ var codeScanningCmd = &cobra.Command{
 				}
 			}
 
-			createdFile, err := repo.commitWorkflowFile(workflowFile, sha)
+			createdFile, err := repo.commitWorkflowFile(client, workflowFile, sha)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -238,7 +245,7 @@ var codeScanningCmd = &cobra.Command{
 			}
 			log.Printf("Successfully created file %s on branch %s in repository %s\n", createdFile, newbranchref, repo.FullName)
 
-			createdPR, err := repo.raisePullRequest()
+			createdPR, err := repo.raisePullRequest(client)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -294,6 +301,6 @@ var codeScanningCmd = &cobra.Command{
 		}
 
 		log.Printf("Finished enable code scanning! \n")
-		return
+
 	},
 }
