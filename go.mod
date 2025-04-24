@@ -1,4 +1,4 @@
-module github.com/s-samadi/gh-add-files
+module github.com/advanced-security/gh-add-files
 
 go 1.20
 
