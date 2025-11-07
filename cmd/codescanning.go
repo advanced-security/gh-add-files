@@ -145,10 +145,12 @@ var codeScanningCmd = &cobra.Command{
 				continue
 			}
 
-			if len(coverage) <= 0 {
+			if len(coverage) <= 0 && !Force {
 				log.Printf("No CodeQL supported language found for repository: %s", repo.FullName)
 				noLanguage = append(noLanguage, repo.FullName)
 				continue
+			} else if len(coverage) <= 0 && Force {
+				log.Printf("No CodeQL supported language found for repository: %s, but force flag is set, continuing anyway", repo.FullName)
 			}
 
 			//check that default setup is not enabled
