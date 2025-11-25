@@ -20,6 +20,7 @@ var TemplateFile string
 var Branch string
 var CsvFile string
 var Force bool
+var NoCodeQL bool
 var Errors = make(map[string]error)
 
 func init() {
@@ -34,6 +35,7 @@ func init() {
 	// codeScanningCmd.MarkFlagsOneRequired("csv", "organization")
 	// codeScanningCmd.MarkFlagsOneRequired("workflow", "template")
 	codeScanningCmd.PersistentFlags().BoolVarP(&Force, "force", "f", false, "force enable code scanning advanced setup or update the existing code scanning workflow file")
+	codeScanningCmd.PersistentFlags().BoolVarP(&NoCodeQL, "no-codeql", "n", false, "disable CodeQL language checks")
 
 }
 
@@ -139,17 +141,21 @@ var codeScanningCmd = &cobra.Command{
 
 			log.Printf("Details for Repository: Full Name: %s; Name: %s; Default Branch: %s\n", repo.FullName, repo.Name, repo.DefaultBranch)
 			//check that repo has at least one codeql supported language
-			coverage, err := repo.GetCodeqlLanguages(client)
-			if err != nil {
-				log.Printf("ERROR: Unable to get repo languages, skipping repository \"%s\"\n Error Message: %s\n", repo.FullName, err)
-				continue
-			}
+			if !NoCodeQL {
+				coverage, err := repo.GetCodeqlLanguages(client)
+				if err != nil {
+					log.Printf("ERROR: Unable to get repo languages, skipping repository \"%s\"\n Error Message: %s\n", repo.FullName, err)
+					continue
+				}
 
-			if len(coverage) <= 0 {
-				log.Printf("No CodeQL supported language found for repository: %s", repo.FullName)
-				noLanguage = append(noLanguage, repo.FullName)
-				continue
-			}
+				if len(coverage) <= 0 {
+					log.Printf("No CodeQL supported language found for repository: %s", repo.FullName)
+					noLanguage = append(noLanguage, repo.FullName)
+					continue
+				}
+		} else {
+			log.Printf("Skipping CodeQL language check for repository: %s (no-codeql flag set)", repo.FullName)
+		}
 
 			//check that default setup is not enabled
 			isDefaultSetupEnabled, err := repo.checkDefaultSetupEnabled(client)
